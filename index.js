@@ -67,27 +67,26 @@ app.get('/demo', async (req, res) => {
 
 app.post('/add-team', async (req, res) => {
   try {
-    console.log(req.body);
     const { team_name } = req.body;
     const { players } = req.body;
     const { captain } = req.body;
     const { vice_captain } = req.body;
     const duplicate = await Team.findOne({ team_name });
     if (duplicate) {
-      return res.send({ status: 403, message: 'Team name already taken' });
+      return res.send({ status: 422, message: 'Team name already taken' });
     }
     if (!team_name) {
-      return res.send({ status: 403, message: 'Team name not provided' });
+      return res.send({ status: 422, message: 'Team name not provided' });
     }
     if (!captain) {
-      return res.send({ status: 403, message: 'Captain not provided' });
+      return res.send({ status: 422, message: 'Captain not provided' });
     }
     if (!vice_captain) {
-      return res.send({ status: 403, message: 'Vice captain not provided' });
+      return res.send({ status: 422, message: 'Vice captain not provided' });
     }
     if (players.length !== 11) {
       return res.send({
-        status: 403,
+        status: 422,
         message: 'A team should contain 11 players',
       });
     }
@@ -115,7 +114,7 @@ app.post('/add-team', async (req, res) => {
     Object.values(teams).forEach((value) => {
       if (value > 10) {
         return res.send({
-          status: 403,
+          status: 422,
           message:
             'A maximum of 10 players can only be selected from any one of the teams',
         });
@@ -124,7 +123,7 @@ app.post('/add-team', async (req, res) => {
     Object.values(player_type).forEach((value) => {
       if (value < 1 || value > 8) {
         return res.send({
-          status: 403,
+          status: 422,
           message:
             'A minimum of 1 and maximum of 8 roles can only be selected for a team',
         });
@@ -132,11 +131,11 @@ app.post('/add-team', async (req, res) => {
     });
     const captain_details = await Player.findOne({ Player: captain });
     if (!captain_details) {
-      return res.send({ status: 403, message: 'Captain not found' });
+      return res.send({ status: 422, message: 'Captain not found' });
     }
     const vice_details = await Player.findOne({ Player: vice_captain });
     if (!vice_details) {
-      return res.send({ status: 403, message: 'Vice captain not found' });
+      return res.send({ status: 422, message: 'Vice captain not found' });
     }
     const team = new Team({
       team_name,
@@ -197,7 +196,6 @@ app.get('/process-result', async (req, res) => {
           score += details.score;
         }
         const teamName = team.team_name;
-        console.log(score);
         await Team.updateOne(
           { team_name: teamName },
           { $set: { total_score: score } },
@@ -221,8 +219,6 @@ app.get('/team-result', async (req, res) => {
     }
     const highestScore = teams[0].total_score;
     const topTeams = teams.filter((team) => team.total_score === highestScore);
-    console.log('Teams and their scores:', teams);
-    console.log('Top team(s):', topTeams);
 
     return res.send({
       status: 200,
